@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZU-CIS External Partners Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --zu-blue: #002f5f;
+            --zu-gold: #c69214;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--zu-blue) 0%, #004080 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .partner-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,47,95,0.1);
+        }
+        .partner-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .badge-category {
+            background: var(--zu-gold);
+            color: white;
+            margin: 2px;
+        }
+        .modal-header {
+            background: var(--zu-blue);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="container text-center">
+            <img src="https://www.zayed.ac.ae/templates/zu2016/img/logo.png" 
+                 alt="Zayed University Logo" 
+                 style="height: 80px;" 
+                 class="mb-3">
+            <h1 class="mb-3">College of Interdisciplinary Studies</h1>
+            <h2 class="h4">External Partners Collaboration Portal</h2>
+        </div>
+    </header>
+
+    <main class="container py-5">
+        <!-- Search and Filter Section -->
+        <div class="row mb-4 g-3">
+            <div class="col-md-8">
+                <input type="text" 
+                       class="form-control form-control-lg" 
+                       id="searchInput" 
+                       placeholder="Search partners by name, technology, or category...">
+            </div>
+            <div class="col-md-4">
+                <select class="form-select form-select-lg" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Training">Training</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Curriculum">Curriculum</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Partners Grid -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="partnersContainer"></div>
+    </main>
+
+    <!-- Partner Details Modal -->
+    <div class="modal fade" id="partnerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="partnerName"></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="partnerContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p>© 2024 Zayed University - College of Interdisciplinary Studies</p>
+            <p>Contact: <a href="mailto:cis@zu.ac.ae" class="text-white">cis@zu.ac.ae</a></p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Complete partners data
+        const partners = [/* Full partner data from previous example */];
+
+        // Partner card template
+        const partnerCard = partner => `
+            <div class="col">
+                <div class="card partner-card h-100" 
+                     data-bs-toggle="modal" 
+                     data-bs-target="#partnerModal"
+                     data-categories="${Object.keys(partner.offerings).join(',')}"
+                     onclick="showPartnerDetails('${partner.name}')">
+                    <div class="card-body">
+                        <h5 class="card-title">${partner.name}</h5>
+                        <a href="${partner.url}" 
+                           target="_blank" 
+                           class="btn btn-outline-primary btn-sm mb-2">
+                            Visit Website
+                        </a>
+                        <div class="badge-container">
+                            ${Object.values(partner.offerings).flat().slice(0,3).map(o => 
+                                `<span class="badge badge-category">${o.substring(0,20)}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Render partners
+        function renderPartners(filter = '') {
+            const container = document.getElementById('partnersContainer');
+            container.innerHTML = partners
+                .filter(p => 
+                    p.name.toLowerCase().includes(filter.toLowerCase()) || 
+                    JSON.stringify(p).toLowerCase().includes(filter.toLowerCase())
+                )
+                .map(partnerCard)
+                .join('');
+        }
+
+        // Show partner details
+        function showPartnerDetails(partnerName) {
+            const partner = partners.find(p => p.name === partnerName);
+            document.getElementById('partnerName').textContent = partnerName;
+            
+            const content = `
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <h5>Key Contacts</h5>
+                        <div class="list-group">
+                            ${partner.contacts.map(c => `
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">${c.name}</h6>
+                                        <small>${c.role}</small>
+                                    </div>
+                                    <a href="mailto:${c.email}" class="text-decoration-none">${c.email}</a>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <a href="${partner.url}" 
+                           target="_blank" 
+                           class="btn btn-primary mt-3">
+                            Visit Official Website
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Collaboration Details</h5>
+                        ${Object.entries(partner.offerings).map(([category, items]) => `
+                            ${items.length ? `
+                            <div class="card mb-3">
+                                <div class="card-header bg-zu-blue text-white">
+                                    ${category}
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    ${items.map(item => `
+                                        <li class="list-group-item">${item}</li>
+                                    `).join('')}
+                                </ul>
+                            </div>` : ''}
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('partnerContent').innerHTML = content;
+        }
+
+        // Initial render
+        renderPartners();
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            renderPartners(e.target.value);
+        });
+
+        // Category filter
+        document.getElementById('categoryFilter').addEventListener('change', (e) => {
+            const category = e.target.value;
+            document.querySelectorAll('.partner-card').forEach(card => {
+                card.style.display = category ? 
+                    card.dataset.categories.includes(category) ? '' : 'none' 
+                    : '';
+            });
+        });
+    </script>
+</body>
+</html>
